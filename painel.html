@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Painel JSmake</title>
+
+<style>
+body{
+background:#111;
+color:white;
+font-family:Arial;
+text-align:center;
+}
+
+.container{
+display:flex;
+justify-content:center;
+gap:40px;
+margin-top:40px;
+}
+
+.box{
+background:#222;
+padding:20px;
+border-radius:15px;
+width:300px;
+box-shadow:0 0 20px #ff00ff;
+}
+
+button{
+margin:5px;
+padding:10px;
+border:none;
+border-radius:10px;
+background:#ff00ff;
+color:white;
+cursor:pointer;
+}
+
+input{
+padding:10px;
+margin:5px;
+border-radius:8px;
+border:none;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Painel JSmake</h1>
+
+<div>
+<input id="vendaValor" placeholder="Valor venda">
+<button onclick="addVenda()">Adicionar Venda</button>
+
+<input id="lucroValor" placeholder="Valor lucro">
+<button onclick="addLucro()">Adicionar Lucro</button>
+
+<br><br>
+<button onclick="resumo()">Resumo</button>
+<button onclick="window.location='/ver_dados'">Ver JSON</button>
+</div>
+
+<div class="container">
+
+<div class="box">
+<h2>Vendas</h2>
+<ul id="vendasList"></ul>
+</div>
+
+<div class="box">
+<h2>Lucros</h2>
+<ul id="lucrosList"></ul>
+</div>
+
+</div>
+
+<script>
+
+async function atualizar(){
+let res = await fetch("/ver_dados");
+let data = await res.json();
+
+let v = document.getElementById("vendasList");
+let l = document.getElementById("lucrosList");
+
+v.innerHTML="";
+l.innerHTML="";
+
+data.vendas.forEach((val,i)=>{
+v.innerHTML += `<li>${val} <button onclick="removeVenda(${i})">X</button></li>`;
+});
+
+data.lucros.forEach((val,i)=>{
+l.innerHTML += `<li>${val} <button onclick="removeLucro(${i})">X</button></li>`;
+});
+}
+
+async function addVenda(){
+let valor = document.getElementById("vendaValor").value;
+
+await fetch("/add_venda",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({valor})
+});
+
+atualizar();
+}
+
+async function addLucro(){
+let valor = document.getElementById("lucroValor").value;
+
+await fetch("/add_lucro",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({valor})
+});
+
+atualizar();
+}
+
+async function removeVenda(i){
+await fetch("/remove_venda",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({index:i})
+});
+
+atualizar();
+}
+
+async function removeLucro(i){
+await fetch("/remove_lucro",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({index:i})
+});
+
+atualizar();
+}
+
+async function resumo(){
+let r = await fetch("/resumo");
+let d = await r.json();
+
+alert(`Vendas: ${d.total_vendas}\nLucro: ${d.total_lucro}`);
+}
+
+atualizar();
+
+</script>
+
+</body>
+</html>
